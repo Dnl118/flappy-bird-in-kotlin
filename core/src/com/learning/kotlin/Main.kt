@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 class Main : ApplicationAdapter() {
     var batch: SpriteBatch? = null
     var img: Texture? = null
+
     override fun create() {
         batch = SpriteBatch()
         img = Texture("badlogic.jpg")
