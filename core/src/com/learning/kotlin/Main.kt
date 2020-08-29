@@ -26,13 +26,27 @@ class Main : ApplicationAdapter() {
     private var justTouched = false
 
     override fun create() {
+        batch = SpriteBatch()
+        initTextures()
+        initConfiguration()
+    }
+
+    override fun render() {
+        verifyGameState()
+        drawTextures()
+    }
+
+    override fun dispose() {
+    }
+
+    private fun initConfiguration() {
         screenWidth = Gdx.graphics.width.toFloat()
         screenHeight = Gdx.graphics.height.toFloat()
 
         birdPositionY = screenHeight / 2
+    }
 
-        batch = SpriteBatch()
-
+    private fun initTextures() {
         birds = arrayOf(Texture("passaro1.png"),
                 Texture("passaro2.png"),
                 Texture("passaro3.png"))
@@ -40,7 +54,18 @@ class Main : ApplicationAdapter() {
         background = Texture("fundo.png")
     }
 
-    override fun render() {
+    private fun drawTextures() {
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        batch.begin()
+
+        batch.draw(background, 0f, 0f, screenWidth, screenHeight)
+        batch.draw(birds[animationIndex.toInt()], birdPositionX, birdPositionY)
+
+        batch.end()
+    }
+
+    private fun verifyGameState() {
         justTouched = Gdx.input.justTouched()
 
         if (justTouched) {
@@ -49,31 +74,13 @@ class Main : ApplicationAdapter() {
 
         applyGravity()
 
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        animationIndex += Gdx.app.graphics.deltaTime * 10
 
-        batch.begin()
-
-        batch.draw(background, 0f, 0f, screenWidth, screenHeight)
-        drawBird()
-
-        batch.end()
-
-        calculatePhysics()
-    }
-
-    override fun dispose() {
-    }
-
-    private fun drawBird() {
         if (animationIndex >= birds.size) {
             animationIndex = 0f
         }
 
-        if (batch.isDrawing) {
-            batch.draw(birds[animationIndex.toInt()], birdPositionX, birdPositionY)
-        }
-
-        animationIndex += Gdx.app.graphics.deltaTime * 10
+        calculatePhysics()
     }
 
     private fun applyGravity() {
@@ -83,6 +90,6 @@ class Main : ApplicationAdapter() {
     }
 
     private fun calculatePhysics() {
-        gravity ++
+        gravity++
     }
 }
