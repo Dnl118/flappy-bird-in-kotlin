@@ -2,8 +2,10 @@ package com.learning.kotlin
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import java.util.*
 
@@ -18,7 +20,8 @@ class Main : ApplicationAdapter() {
     private lateinit var birds: Array<Texture>
 
     // Configuration Attributes
-    private var birdPositionX = 30f
+    private var score = 0
+    private var birdPositionX = 50f
     private var birdPositionY = 0f
     private var screenWidth = 0f
     private var screenHeight = 0f
@@ -27,19 +30,24 @@ class Main : ApplicationAdapter() {
     private var pipePositionX = 0f
     private var pipePositionY = 0f
     private var spaceBetweenPipes = 180f
+    private var passedThroughPipe = false
 
     private var justTouched = false
+
+    private lateinit var scoreText: BitmapFont
 
     private var random: Random = Random()
 
     override fun create() {
         batch = SpriteBatch()
+        scoreText = BitmapFont()
         initTextures()
         initConfiguration()
     }
 
     override fun render() {
         verifyGameState()
+        evaluateScore()
         drawTextures()
     }
 
@@ -53,6 +61,9 @@ class Main : ApplicationAdapter() {
         birdPositionY = screenHeight / 2
 
         pipePositionX = screenWidth
+
+        scoreText.color = Color.WHITE
+        scoreText.data.scale(10f)
     }
 
     private fun initTextures() {
@@ -76,6 +87,8 @@ class Main : ApplicationAdapter() {
         batch.draw(pipeAbove, pipePositionX, screenHeight - pipeAbove.height + spaceBetweenPipes / 2 + pipePositionY)
         batch.draw(pipeBelow, pipePositionX, screenHeight / 2 - pipeBelow.height - spaceBetweenPipes / 2 + pipePositionY)
 
+        scoreText.draw(batch,"$score", screenWidth / 2, screenHeight - 110)
+
         batch.end()
     }
 
@@ -91,6 +104,7 @@ class Main : ApplicationAdapter() {
         if (pipePositionX < -pipeAbove.width) {
             pipePositionX = screenWidth
             pipePositionY = (random.nextInt(800) - 400).toFloat()
+            passedThroughPipe = false
         }
 
         applyGravity()
@@ -102,6 +116,13 @@ class Main : ApplicationAdapter() {
         }
 
         calculatePhysics()
+    }
+
+    private fun evaluateScore() {
+        if (pipePositionX < 50 - birds.first().width && !passedThroughPipe) {
+            passedThroughPipe = true
+            score++
+        }
     }
 
     private fun applyGravity() {
