@@ -5,25 +5,32 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import java.util.*
 
 class Main : ApplicationAdapter() {
 
     private lateinit var batch: SpriteBatch
-    private lateinit var background: Texture
 
+    // Textures
+    private lateinit var background: Texture
+    private lateinit var pipeAbove: Texture
+    private lateinit var pipeBelow: Texture
     private lateinit var birds: Array<Texture>
 
+    // Configuration Attributes
     private var birdPositionX = 30f
     private var birdPositionY = 0f
-
     private var screenWidth = 0f
     private var screenHeight = 0f
-
     private var animationIndex = 0f
-
     private var gravity = 0f
+    private var pipePositionX = 0f
+    private var pipePositionY = 0f
+    private var spaceBetweenPipes = 180f
 
     private var justTouched = false
+
+    private var random: Random = Random()
 
     override fun create() {
         batch = SpriteBatch()
@@ -44,6 +51,8 @@ class Main : ApplicationAdapter() {
         screenHeight = Gdx.graphics.height.toFloat()
 
         birdPositionY = screenHeight / 2
+
+        pipePositionX = screenWidth
     }
 
     private fun initTextures() {
@@ -52,6 +61,9 @@ class Main : ApplicationAdapter() {
                 Texture("passaro3.png"))
 
         background = Texture("fundo.png")
+
+        pipeAbove = Texture("cano_topo_maior.png")
+        pipeBelow = Texture("cano_baixo_maior.png")
     }
 
     private fun drawTextures() {
@@ -61,20 +73,29 @@ class Main : ApplicationAdapter() {
 
         batch.draw(background, 0f, 0f, screenWidth, screenHeight)
         batch.draw(birds[animationIndex.toInt()], birdPositionX, birdPositionY)
+        batch.draw(pipeAbove, pipePositionX, screenHeight - pipeAbove.height + spaceBetweenPipes / 2 + pipePositionY)
+        batch.draw(pipeBelow, pipePositionX, screenHeight / 2 - pipeBelow.height - spaceBetweenPipes / 2 + pipePositionY)
 
         batch.end()
     }
 
     private fun verifyGameState() {
+        val deltaTime = Gdx.app.graphics.deltaTime
         justTouched = Gdx.input.justTouched()
 
         if (justTouched) {
             gravity = -25f
         }
 
+        pipePositionX -= deltaTime * 200
+        if (pipePositionX < -pipeAbove.width) {
+            pipePositionX = screenWidth
+            pipePositionY = (random.nextInt(800) - 400).toFloat()
+        }
+
         applyGravity()
 
-        animationIndex += Gdx.app.graphics.deltaTime * 10
+        animationIndex += deltaTime * 10
 
         if (animationIndex >= birds.size) {
             animationIndex = 0f
