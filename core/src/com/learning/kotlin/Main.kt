@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Circle
+import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Rectangle
 import java.util.*
 
@@ -58,6 +59,7 @@ class Main : ApplicationAdapter() {
         evaluateScore()
         drawTextures()
         detectCollisions()
+        drawCollisionShapes()
     }
 
     override fun dispose() {
@@ -112,11 +114,33 @@ class Main : ApplicationAdapter() {
     }
 
     private fun detectCollisions() {
+        val birdWidth = birds.first().width
+        val birdHeight = birds.first().height
+        birdShape.set(birdPositionX + birdWidth / 2f, birdPositionY + birdHeight / 2f, birdWidth / 2f)
+
+        pipeAboveShape.set(pipePositionX,
+                screenHeight - pipeAbove.height + spaceBetweenPipes / 2 + pipePositionY,
+                pipeAbove.width.toFloat(),
+                pipeAbove.height.toFloat())
+
+        pipeBelowShape.set(pipePositionX,
+                screenHeight / 2 - pipeBelow.height - spaceBetweenPipes / 2 + pipePositionY,
+                pipeBelow.width.toFloat(),
+                pipeBelow.height.toFloat())
+
+        if (Intersector.overlaps(birdShape, pipeAboveShape) ||
+                Intersector.overlaps(birdShape, pipeBelowShape)) {
+            // TODO: Game Over!
+        }
+    }
+
+    private fun drawCollisionShapes() {
+        val birdWidth = birds.first().width
+        val birdHeight = birds.first().height
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.color = Color.RED
 
-        val birdWidth = birds.first().width
-        val birdHeight = birds.first().height
         shapeRenderer.circle(birdPositionX + birdWidth / 2f, birdPositionY + birdHeight / 2f, birdWidth / 2f)
 
         shapeRenderer.rect(pipePositionX,
