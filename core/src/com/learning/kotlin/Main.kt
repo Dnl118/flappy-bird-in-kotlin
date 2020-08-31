@@ -117,8 +117,17 @@ class Main : ApplicationAdapter() {
 
         val birdWidth = birds.first().width
         val birdHeight = birds.first().height
-
         shapeRenderer.circle(birdPositionX + birdWidth / 2f, birdPositionY + birdHeight / 2f, birdWidth / 2f)
+
+        shapeRenderer.rect(pipePositionX,
+                screenHeight - pipeAbove.height + spaceBetweenPipes / 2 + pipePositionY,
+                pipeAbove.width.toFloat(),
+                pipeAbove.height.toFloat())
+
+        shapeRenderer.rect(pipePositionX,
+                screenHeight / 2 - pipeBelow.height - spaceBetweenPipes / 2 + pipePositionY,
+                pipeBelow.width.toFloat(),
+                pipeBelow.height.toFloat())
 
         shapeRenderer.end()
     }
