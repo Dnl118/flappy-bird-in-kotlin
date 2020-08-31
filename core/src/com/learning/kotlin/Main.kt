@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.math.Circle
+import com.badlogic.gdx.math.Rectangle
 import java.util.*
 
 class Main : ApplicationAdapter() {
@@ -18,6 +21,12 @@ class Main : ApplicationAdapter() {
     private lateinit var pipeAbove: Texture
     private lateinit var pipeBelow: Texture
     private lateinit var birds: Array<Texture>
+
+    // Shapes for collisions
+    private lateinit var shapeRenderer: ShapeRenderer
+    private lateinit var birdShape: Circle
+    private lateinit var pipeAboveShape: Rectangle
+    private lateinit var pipeBelowShape: Rectangle
 
     // Configuration Attributes
     private var score = 0
@@ -39,16 +48,16 @@ class Main : ApplicationAdapter() {
     private var random: Random = Random()
 
     override fun create() {
-        batch = SpriteBatch()
-        scoreText = BitmapFont()
         initTextures()
         initConfiguration()
+        initShapes()
     }
 
     override fun render() {
         verifyGameState()
         evaluateScore()
         drawTextures()
+        detectCollisions()
     }
 
     override fun dispose() {
@@ -66,7 +75,17 @@ class Main : ApplicationAdapter() {
         scoreText.data.scale(10f)
     }
 
+    private fun initShapes() {
+        shapeRenderer = ShapeRenderer()
+        birdShape = Circle()
+        pipeAboveShape = Rectangle()
+        pipeBelowShape = Rectangle()
+    }
+
     private fun initTextures() {
+        batch = SpriteBatch()
+        scoreText = BitmapFont()
+
         birds = arrayOf(Texture("passaro1.png"),
                 Texture("passaro2.png"),
                 Texture("passaro3.png"))
@@ -90,6 +109,18 @@ class Main : ApplicationAdapter() {
         scoreText.draw(batch,"$score", screenWidth / 2, screenHeight - 110)
 
         batch.end()
+    }
+
+    private fun detectCollisions() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.color = Color.RED
+
+        val birdWidth = birds.first().width
+        val birdHeight = birds.first().height
+
+        shapeRenderer.circle(birdPositionX + birdWidth / 2f, birdPositionY + birdHeight / 2f, birdWidth / 2f)
+
+        shapeRenderer.end()
     }
 
     private fun verifyGameState() {
