@@ -41,8 +41,10 @@ class Main : ApplicationAdapter() {
     private var gravity = 0f
     private var pipePositionX = 0f
     private var pipePositionY = 0f
-    private var spaceBetweenPipes = 180f
+    private var spaceBetweenPipes = 240f
     private var passedThroughPipe = false
+
+    private var gameState = GameState.WAITING_TO_START
 
     private var justTouched = false
 
@@ -76,8 +78,7 @@ class Main : ApplicationAdapter() {
 
         pipePositionX = screenWidth
 
-        scoreText.color = Color.WHITE
-        scoreText.data.scale(10f)
+        score = 0
     }
 
     private fun initShapes() {
@@ -89,7 +90,11 @@ class Main : ApplicationAdapter() {
 
     private fun initTextures() {
         batch = SpriteBatch()
+
         scoreText = BitmapFont()
+        scoreText.color = Color.WHITE
+        scoreText.data.scale(10f)
+
         scoreTextGlyphLayout = GlyphLayout()
 
         birds = arrayOf(Texture("passaro1.png"),
@@ -137,7 +142,7 @@ class Main : ApplicationAdapter() {
 
         if (Intersector.overlaps(birdShape, pipeAboveShape) ||
                 Intersector.overlaps(birdShape, pipeBelowShape)) {
-            // TODO: Game Over!
+            gameState = GameState.GAME_OVER
         }
     }
 
@@ -167,26 +172,45 @@ class Main : ApplicationAdapter() {
         val deltaTime = Gdx.app.graphics.deltaTime
         justTouched = Gdx.input.justTouched()
 
-        if (justTouched) {
-            gravity = -25f
-        }
+        when (gameState) {
+            GameState.WAITING_TO_START -> {
+                if (justTouched) {
+                    gravity = -20f
+                    gameState = GameState.RUNNING
+                }
+            }
 
-        pipePositionX -= deltaTime * 200
-        if (pipePositionX < -pipeAbove.width) {
-            pipePositionX = screenWidth
-            pipePositionY = (random.nextInt(800) - 400).toFloat()
-            passedThroughPipe = false
-        }
+            GameState.RUNNING -> {
+                if (justTouched) {
+                    gravity = -20f
+                    gameState = GameState.RUNNING
+                }
 
-        applyGravity()
+                pipePositionX -= deltaTime * 200
+                if (pipePositionX < -pipeAbove.width) {
+                    pipePositionX = screenWidth
+                    pipePositionY = (random.nextInt(800) - 400).toFloat()
+                    passedThroughPipe = false
+                }
+
+                applyGravity()
+
+                calculatePhysics()
+            }
+
+            GameState.GAME_OVER -> {
+                if (justTouched) {
+                    gameState = GameState.WAITING_TO_START
+                    initConfiguration()
+                }
+            }
+        }
 
         animationIndex += deltaTime * 10
 
         if (animationIndex >= birds.size) {
             animationIndex = 0f
         }
-
-        calculatePhysics()
     }
 
     private fun evaluateScore() {
