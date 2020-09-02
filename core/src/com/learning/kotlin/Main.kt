@@ -23,6 +23,7 @@ class Main : ApplicationAdapter() {
     private lateinit var background: Texture
     private lateinit var pipeAbove: Texture
     private lateinit var pipeBelow: Texture
+    private lateinit var gameOver: Texture
     private lateinit var birds: Array<Texture>
 
     // Shapes for collisions
@@ -49,9 +50,13 @@ class Main : ApplicationAdapter() {
     private var justTouched = false
 
     private lateinit var scoreText: BitmapFont
-    private lateinit var scoreTextGlyphLayout: GlyphLayout
+    private lateinit var restartText: BitmapFont
+    private lateinit var highScoreText: BitmapFont
+    private lateinit var glyphLayout: GlyphLayout
 
     private var random: Random = Random()
+
+    private val touchToRestart = "Touch to restart!"
 
     override fun create() {
         initTextures()
@@ -95,7 +100,15 @@ class Main : ApplicationAdapter() {
         scoreText.color = Color.WHITE
         scoreText.data.scale(10f)
 
-        scoreTextGlyphLayout = GlyphLayout()
+        restartText = BitmapFont()
+        restartText.color = Color.GREEN
+        restartText.data.scale(3f)
+
+        highScoreText = BitmapFont()
+        highScoreText.color = Color.RED
+        highScoreText.data.scale(3f)
+
+        glyphLayout = GlyphLayout()
 
         birds = arrayOf(Texture("passaro1.png"),
                 Texture("passaro2.png"),
@@ -105,6 +118,8 @@ class Main : ApplicationAdapter() {
 
         pipeAbove = Texture("cano_topo_maior.png")
         pipeBelow = Texture("cano_baixo_maior.png")
+
+        gameOver = Texture("game_over.png")
     }
 
     private fun drawTextures() {
@@ -117,10 +132,19 @@ class Main : ApplicationAdapter() {
         batch.draw(pipeAbove, pipePositionX, screenHeight - pipeAbove.height + spaceBetweenPipes / 2 + pipePositionY)
         batch.draw(pipeBelow, pipePositionX, screenHeight / 2 - pipeBelow.height - spaceBetweenPipes / 2 + pipePositionY)
 
+        glyphLayout.setText(scoreText, "$score")
+        scoreText.draw(batch, "$score", screenWidth / 2 - glyphLayout.width / 2, screenHeight - 110)
 
-        scoreTextGlyphLayout.setText(scoreText, "$score")
+        if (gameState == GameState.GAME_OVER) {
+            batch.draw(gameOver, screenWidth / 2 - gameOver.width / 2, screenHeight / 2)
 
-        scoreText.draw(batch, "$score", screenWidth / 2 - scoreTextGlyphLayout.width / 2, screenHeight - 110)
+            glyphLayout.setText(restartText, touchToRestart)
+            restartText.draw(batch, touchToRestart, screenWidth / 2 - glyphLayout.width / 2 , screenHeight / 2 - gameOver.height / 2)
+
+            val highScore = "High score: 0"
+            glyphLayout.setText(highScoreText, highScore)
+            highScoreText.draw(batch, highScore, screenWidth / 2 - glyphLayout.width / 2 , screenHeight / 2 - glyphLayout.height * 3)
+        }
 
         batch.end()
     }
