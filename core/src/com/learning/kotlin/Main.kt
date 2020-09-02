@@ -2,6 +2,7 @@ package com.learning.kotlin
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Preferences
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -35,6 +36,7 @@ class Main : ApplicationAdapter() {
 
     // Configuration Attributes
     private var score = 0
+    private var highScore = 0
     private var birdPositionX = 50f
     private var birdPositionY = 0f
     private var screenWidth = 0f
@@ -63,11 +65,14 @@ class Main : ApplicationAdapter() {
 
     private val touchToRestart = "Touch to restart!"
 
+    private lateinit var preferences: Preferences
+
     override fun create() {
         initTextures()
         initConfiguration()
         initShapes()
         initSounds()
+        initScore()
     }
 
     override fun render() {
@@ -104,6 +109,11 @@ class Main : ApplicationAdapter() {
         birdShape = Circle()
         pipeAboveShape = Rectangle()
         pipeBelowShape = Rectangle()
+    }
+
+    private fun initScore() {
+        preferences = Gdx.app.getPreferences("flappyBird")
+        highScore = preferences.getInteger("highScore", 0)
     }
 
     private fun initTextures() {
@@ -154,7 +164,7 @@ class Main : ApplicationAdapter() {
             glyphLayout.setText(restartText, touchToRestart)
             restartText.draw(batch, touchToRestart, screenWidth / 2 - glyphLayout.width / 2, screenHeight / 2 - gameOver.height / 2)
 
-            val highScore = "High score: 0"
+            val highScore = "High score: $highScore"
             glyphLayout.setText(highScoreText, highScore)
             highScoreText.draw(batch, highScore, screenWidth / 2 - glyphLayout.width / 2, screenHeight / 2 - glyphLayout.height * 3)
         }
@@ -243,6 +253,12 @@ class Main : ApplicationAdapter() {
                 if (justTouched) {
                     gameState = GameState.WAITING_TO_START
                     initConfiguration()
+                }
+
+                if (score > highScore) {
+                    highScore = score
+                    preferences.putInteger("highScore", highScore)
+                    preferences.flush()
                 }
 
                 birdPositionX -= Gdx.graphics.deltaTime * 500
