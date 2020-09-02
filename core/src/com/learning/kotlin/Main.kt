@@ -2,6 +2,7 @@ package com.learning.kotlin
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
@@ -54,6 +55,10 @@ class Main : ApplicationAdapter() {
     private lateinit var highScoreText: BitmapFont
     private lateinit var glyphLayout: GlyphLayout
 
+    private lateinit var wingsSound: Sound
+    private lateinit var scoreSound: Sound
+    private lateinit var collisionSound: Sound
+
     private var random: Random = Random()
 
     private val touchToRestart = "Touch to restart!"
@@ -62,6 +67,7 @@ class Main : ApplicationAdapter() {
         initTextures()
         initConfiguration()
         initShapes()
+        initSounds()
     }
 
     override fun render() {
@@ -69,7 +75,7 @@ class Main : ApplicationAdapter() {
         evaluateScore()
         drawTextures()
         detectCollisions()
-        drawCollisionShapes()
+//        drawCollisionShapes()
     }
 
     override fun dispose() {
@@ -79,11 +85,18 @@ class Main : ApplicationAdapter() {
         screenWidth = Gdx.graphics.width.toFloat()
         screenHeight = Gdx.graphics.height.toFloat()
 
+        birdPositionX = 50f
         birdPositionY = screenHeight / 2
 
         pipePositionX = screenWidth
 
         score = 0
+    }
+
+    private fun initSounds() {
+        wingsSound = Gdx.audio.newSound(Gdx.files.internal("som_asa.wav"))
+        scoreSound = Gdx.audio.newSound(Gdx.files.internal("som_pontos.wav"))
+        collisionSound = Gdx.audio.newSound(Gdx.files.internal("som_batida.wav"))
     }
 
     private fun initShapes() {
@@ -139,11 +152,11 @@ class Main : ApplicationAdapter() {
             batch.draw(gameOver, screenWidth / 2 - gameOver.width / 2, screenHeight / 2)
 
             glyphLayout.setText(restartText, touchToRestart)
-            restartText.draw(batch, touchToRestart, screenWidth / 2 - glyphLayout.width / 2 , screenHeight / 2 - gameOver.height / 2)
+            restartText.draw(batch, touchToRestart, screenWidth / 2 - glyphLayout.width / 2, screenHeight / 2 - gameOver.height / 2)
 
             val highScore = "High score: 0"
             glyphLayout.setText(highScoreText, highScore)
-            highScoreText.draw(batch, highScore, screenWidth / 2 - glyphLayout.width / 2 , screenHeight / 2 - glyphLayout.height * 3)
+            highScoreText.draw(batch, highScore, screenWidth / 2 - glyphLayout.width / 2, screenHeight / 2 - glyphLayout.height * 3)
         }
 
         batch.end()
@@ -164,8 +177,10 @@ class Main : ApplicationAdapter() {
                 pipeBelow.width.toFloat(),
                 pipeBelow.height.toFloat())
 
-        if (Intersector.overlaps(birdShape, pipeAboveShape) ||
-                Intersector.overlaps(birdShape, pipeBelowShape)) {
+        if ((Intersector.overlaps(birdShape, pipeAboveShape) ||
+                        Intersector.overlaps(birdShape, pipeBelowShape)) &&
+                gameState == GameState.RUNNING) {
+            collisionSound.play()
             gameState = GameState.GAME_OVER
         }
     }
@@ -201,6 +216,7 @@ class Main : ApplicationAdapter() {
                 if (justTouched) {
                     gravity = -20f
                     gameState = GameState.RUNNING
+                    wingsSound.play()
                 }
             }
 
@@ -208,6 +224,7 @@ class Main : ApplicationAdapter() {
                 if (justTouched) {
                     gravity = -20f
                     gameState = GameState.RUNNING
+                    wingsSound.play()
                 }
 
                 pipePositionX -= deltaTime * 200
@@ -227,6 +244,8 @@ class Main : ApplicationAdapter() {
                     gameState = GameState.WAITING_TO_START
                     initConfiguration()
                 }
+
+                birdPositionX -= Gdx.graphics.deltaTime * 500
             }
         }
 
@@ -239,6 +258,7 @@ class Main : ApplicationAdapter() {
 
     private fun evaluateScore() {
         if (pipePositionX < 50 - birds.first().width && !passedThroughPipe) {
+            scoreSound.play()
             passedThroughPipe = true
             score++
         }
@@ -247,6 +267,8 @@ class Main : ApplicationAdapter() {
     private fun applyGravity() {
         if (birdPositionY > 0 || justTouched) {
             birdPositionY -= gravity
+        } else {
+            birdPositionY = 0f
         }
     }
 
