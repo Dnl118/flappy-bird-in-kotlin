@@ -270,6 +270,12 @@ class Main : ApplicationAdapter() {
                     passedThroughPipe = false
                 }
 
+                val birdHeight = birds.first().height
+
+                if (birdPositionY + birdHeight >= VIRTUAL_HEIGHT) {
+                    birdPositionY = VIRTUAL_HEIGHT - birdHeight
+                }
+
                 applyGravity()
 
                 calculatePhysics()
