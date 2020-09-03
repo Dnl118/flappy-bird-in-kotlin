@@ -6,6 +6,7 @@ import com.badlogic.gdx.Preferences
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
@@ -14,10 +15,18 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Rectangle
-import java.util.*
+import com.badlogic.gdx.utils.viewport.StretchViewport
+import com.badlogic.gdx.utils.viewport.Viewport
+import java.util.Random
 
 
 class Main : ApplicationAdapter() {
+
+    private lateinit var camera: OrthographicCamera
+    private lateinit var viewport: Viewport
+
+    private val VIRTUAL_WIDTH = 720f
+    private val VIRTUAL_HEIGHT = 1280f
 
     private lateinit var batch: SpriteBatch
 
@@ -68,6 +77,7 @@ class Main : ApplicationAdapter() {
     private lateinit var preferences: Preferences
 
     override fun create() {
+        initCamera()
         initTextures()
         initConfiguration()
         initShapes()
@@ -76,6 +86,9 @@ class Main : ApplicationAdapter() {
     }
 
     override fun render() {
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT)
+
         verifyGameState()
         evaluateScore()
         drawTextures()
@@ -86,9 +99,13 @@ class Main : ApplicationAdapter() {
     override fun dispose() {
     }
 
+    override fun resize(width: Int, height: Int) {
+        viewport.update(width, height)
+    }
+
     private fun initConfiguration() {
-        screenWidth = Gdx.graphics.width.toFloat()
-        screenHeight = Gdx.graphics.height.toFloat()
+        screenWidth = VIRTUAL_WIDTH
+        screenHeight = VIRTUAL_HEIGHT
 
         birdPositionX = 50f
         birdPositionY = screenHeight / 2
@@ -96,6 +113,13 @@ class Main : ApplicationAdapter() {
         pipePositionX = screenWidth
 
         score = 0
+    }
+
+    private fun initCamera() {
+        camera = OrthographicCamera()
+        camera.position.x = VIRTUAL_WIDTH / 2
+        camera.position.y = VIRTUAL_HEIGHT / 2
+        viewport = StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera)
     }
 
     private fun initSounds() {
@@ -125,11 +149,11 @@ class Main : ApplicationAdapter() {
 
         restartText = BitmapFont()
         restartText.color = Color.GREEN
-        restartText.data.scale(3f)
+        restartText.data.scale(1.5f)
 
         highScoreText = BitmapFont()
         highScoreText.color = Color.RED
-        highScoreText.data.scale(3f)
+        highScoreText.data.scale(1.5f)
 
         glyphLayout = GlyphLayout()
 
@@ -139,14 +163,16 @@ class Main : ApplicationAdapter() {
 
         background = Texture("fundo.png")
 
-        pipeAbove = Texture("cano_topo_maior.png")
-        pipeBelow = Texture("cano_baixo_maior.png")
+        pipeAbove = Texture("cano_topo.png")
+        pipeBelow = Texture("cano_baixo.png")
 
         gameOver = Texture("game_over.png")
     }
 
     private fun drawTextures() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        batch.projectionMatrix = camera.combined
 
         batch.begin()
 
@@ -166,7 +192,7 @@ class Main : ApplicationAdapter() {
 
             val highScore = "High score: $highScore"
             glyphLayout.setText(highScoreText, highScore)
-            highScoreText.draw(batch, highScore, screenWidth / 2 - glyphLayout.width / 2, screenHeight / 2 - glyphLayout.height * 3)
+            highScoreText.draw(batch, highScore, screenWidth / 2 - glyphLayout.width / 2, screenHeight / 2 - glyphLayout.height * 3.5f)
         }
 
         batch.end()
@@ -224,7 +250,7 @@ class Main : ApplicationAdapter() {
         when (gameState) {
             GameState.WAITING_TO_START -> {
                 if (justTouched) {
-                    gravity = -20f
+                    gravity = -15f
                     gameState = GameState.RUNNING
                     wingsSound.play()
                 }
@@ -232,7 +258,7 @@ class Main : ApplicationAdapter() {
 
             GameState.RUNNING -> {
                 if (justTouched) {
-                    gravity = -20f
+                    gravity = -15f
                     gameState = GameState.RUNNING
                     wingsSound.play()
                 }
